@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>释放压力</title>
+</head>
+<body>
+    <audio src="../static/music/pop.wav"></audio>
+    <img src="../static/images/circles/red_circle.png" width="300" height="300" id="red">
+    <img src="../static/images/circles/yellow_circle.png" width="300" height="300" id="yellow">
+    <br>
+    <img src="../static/images/circles/blue_circle.png" width="300" height="300" id="blue">
+    <img src="../static/images/circles/green_circle.png" width="300" height="300" id="green">
+    <a href="/">返回主页</a>
+    <script>
+        var audio = new Audio('../static/music/pop.wav')
+        var red = document.getElementById('red')
+        var yellow = document.getElementById('yellow')
+        var blue = document.getElementById('blue')
+        var green = document.getElementById('green')
+        window.onload = function(){
+            red.onmouseover = mouseover
+            yellow.onmouseover = mouseover
+            blue.onmouseover = mouseover
+            green.onmouseover = mouseover
+        }
+        function mouseover(){
+            audio.play();
+        }
+    </script>
+</body>
+</html>

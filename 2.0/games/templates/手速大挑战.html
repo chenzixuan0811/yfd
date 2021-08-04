@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>手速大挑战</title>
+    <style>
+        body {
+            text-align: center
+        }
+        canvas {
+            border: 1px solid black 
+        }
+        .div {
+            z-index:1;
+            color:rgb(21, 219, 54);
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+        <div class="div">
+            <h1 id="blue">狂点</h1>
+        </div>
+        <!-- 创建画布 -->
+        <canvas id="main" width="600" height="900"></canvas>
+        <div class="div">
+            <h1 id="red`">狂点</h1>
+        </div>      
+        <script>
+            // 获取画布
+            var canvas = document.getElementById('main')
+
+            // 创建画笔
+            var ctx = canvas.getContext('2d')
+
+            // 获取图片资源
+            var red_blue = new Image()
+            red_blue.src = '../tatic/images/red_blue.png'
+
+            // 定义字体和大小
+            ctx.font = '50px Arial'
+            ctx.fillStyle = '#ffffff'
+
+            var time = 3
+            var res = 0
+            var gameY = -450
+            
+            // 定义游戏状态
+            const GAME_READY = 0
+            const GAME_OVER = 1
+            const GAME_RUNNING = -1
+            const GAME_READYGO = 2
+            var gameState = GAME_READY
+
+            // 加载完成执行以下代码
+            window.onload = function(){
+                blue.onclick = blue
+                red.onclick =  red            
+                canvas.onclick = can
+                setInterval(gameSet,10)
+
+            }
+
+            // 画布点击事件函数
+            function can() {
+                if(gameState == GAME_OVER){
+                    gameState = GAME_READY
+                }else if(gameState = GAME_READY){
+                    gameState = GAME_READYGO
+                }
+            }
+            // 定时器执行的函数
+            function gameSet(){
+                if(gameState == GAME_READYGO){
+                    ctx.clearRect(0,0,600,900)
+                    ctx.drawImage(red_blue,0,-450,600,1800)
+                    if(res == 1000){
+                        time = 2
+                    }else if(res == 2000){
+                        time = 3
+                    }else if(res == 3000){
+                        time = 0
+                        ctx.clearRect(600,900)
+                        ctx.drawImage(red_blue,0,-450,600,1800)
+                        gameState = GAME_RUNNING
+                    } 
+                    ctx.fillText(time,275,475)
+                    res = res + 10
+                }else if(gameState == GAME_OVER){
+                    ctx.fillText('游戏结束',200,475)
+                }else if(gameState == GAME_READY){
+                    ctx.clearRect(0,0,600,900)
+                    ctx.drawImage(red_blue,0,-450,600,1800)
+                    ctx.fillText('点击画布开始',150,475)
+                }else if(gameState == GAME_RUNNING){
+                    if(gameY >= 0 || gameY <= -900){
+                        gameState = GAME_OVER
+                    }
+                }
+            }
+
+            function blue(){
+                if(gameState == GAME_RUNNING){
+                    gameY = gameY + Math.random() * 60 + 60
+                }
+                console.log('blue')
+            }
+
+            function red(){
+                if(gameState == GAME_RUNNING){
+                    gameY = gameY - Math.random() * 60 + 60
+                }
+                console.log('red')
+            }
+            
+        </script>
+</body>
+
+</html>

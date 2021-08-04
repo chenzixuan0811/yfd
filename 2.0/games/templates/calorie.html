@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>卡路里大挑战</title>
+</head>
+<body>
+    <script>
+        //加载背景图
+        var bgImg = new Image()
+        bgImg.src = './static/calorie/images/bg.png'
+
+        //初始化西蓝花图片数组
+        var broccoliImgAry = []
+        for (var i = 1; i <= 2; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/broccoli' + i + '.png'
+            broccoliImgAry.push(img)
+        }
+        //初始化毒蘑菇图片数组
+        var mushroomImgAry = []
+        for (var i = 1; i <= 2; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/mushroom' + i + '.png'
+            mushroomImgAry.push(img)
+        }
+        //初始化土豆图片数组
+        var potatoImgAry = []
+        for (var i = 1; i <= 2; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/potato' + i + '.png'
+            potatoImgAry.push(img)
+        }
+        //初始化西红柿图片数组
+        var tomatoImgAry = []
+        for (var i = 1; i <= 2; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/tomato' + i + '.png'
+            tomatoImgAry.push(img)
+        }
+        //初始化白萝卜图片数组
+        var radishImgAry = []
+        for (var i = 1; i <= 2; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/radish' + i + '.png'
+            radishImgAry.push(img)
+        }
+        //初始化小猪图片数组
+        var pigImgAry = []
+        for (var i = 1; i <= 8; i++) {
+            var img = new Image();
+            img.src = './static/calorie/images/pig' + i + '.png'
+            pigImgAry.push(img)
+        }
+        //使用二维数组存储不同级别下小猪使用的图片数组
+        var pigLevel = [[pigImgAry[0], pigImgAry[1]],
+        [pigImgAry[2], pigImgAry[3]],
+        [pigImgAry[4], pigImgAry[5]],
+        [pigImgAry[6], pigImgAry[7]]
+        ]
+        //加载展示卡路里数值的图片
+        var calImg = new Image()
+        calImg.src = './static/calorie/images/calorie.png'
+        //存储卡路里数值
+        var calNum = 0
+        //加载挑战成功图片
+        var successImg = new Image()
+        successImg.src = './static/calorie/images/success.png'
+        //加载展示时间数值的图片
+        var timeImg = new Image()
+        timeImg.src = './static/calorie/images/time.png'
+
+
+
+        //画布的宽和高
+        var canvasWidth = 843
+        var canvasHeight = 550
+        //栅栏的高度(蔬菜和小猪不能出现在栅栏区域内，所以Y坐标范围为：0~（canvasHeight-fenceHeight）)
+        var fenceHeight = 100
+
+        var ctx = null
+
+        //存储蔬菜角色的数组
+        var vegAry = [randomVeg()]
+        //小猪对象
+        var pig = { x: 358, y: 460, imgAry: pigLevel[0], img: pigLevel[0][0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 126, height: 87 }
+
+        //游戏状态
+        const GAME_RUNNING = 1
+        const GAME_OVER = -1
+        var gameState = GAME_RUNNING
+
+        //游戏开始时间
+        var startTime = new Date().getTime()
+        var endTime = new Date().getTime()
+
+        //用于记录哪些方向键被按下的对象，false代表没有按下，true代表已按下
+        //方向键对应的keyCode作为属性名，当属性名为数字时，访问方式为对象名[属性名]
+        var key_pressed = { 37: false, 38: false, 39: false, 40: false }
+
+        window.onload = function () {
+            var canvas = document.getElementById('main')
+            ctx = canvas.getContext('2d')
+
+            //监听键盘事件控制小猪移动
+            document.onkeydown = function (e) {
+                var code = e.keyCode
+                if (code >= 37 && code <= 40) {
+                    key_pressed[code] = true
+                }
+            }
+            document.onkeyup = function (e) {
+                var code = e.keyCode
+                if (code >= 37 && code <= 40) {
+                    key_pressed[code] = false
+                }
+            }
+
+            //每隔2秒生成一个蔬菜角色
+            setInterval(function () {
+                var veg = randomVeg()
+                vegAry.push(veg)
+            }, 1500)
+
+            setInterval(gameHandler, 1000 / 60)
+            canvas.onclick = function(){
+                if(gameState == GAME_OVER){
+                   location.reload() 
+                }
+                
+            }
+            function gameHandler() {
+                if (gameState == GAME_RUNNING) {
+                    ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight)
+                    // drawVeg()
+                    // drawPig()
+                    // drawCal()
+                    moveVeg()
+                    movePig()
+                    checkHit()
+                    changeLevel()
+                    addAnimation()
+                    deleteVeg()
+
+                    //为了保证加分之后能够切换到对应的图片，所以应该最后画游戏角色
+                    //ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight)
+                    
+                    drawVeg()
+                    drawPig()
+                    drawCal()
+                    drawTime()
+
+                    isGameover()
+                } else if (gameState == GAME_OVER) {
+                    //ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight)
+                    ctx.drawImage(successImg, 230, 100)
+                    time = (endTime - startTime) / 1000
+                    ctx.font = "45px Arial";
+                    ctx.fillStyle = "#ffffff"
+                    // ctx.fillText("" + time + '秒', 530, 420)
+                    ctx.fillText('' + time + '秒', getX4time(), 320)
+                }
+            }
+
+        }
+
+        //让小猪移动的函数
+        function movePig() {
+            if (key_pressed[37] == true) {
+                pig.x = pig.x - 4
+            }
+            if (key_pressed[38] == true) {
+                pig.y = pig.y - 4
+            }
+            if (key_pressed[39] == true) {
+                pig.x = pig.x + 4
+            }
+            if (key_pressed[40] == true) {
+                pig.y = pig.y + 4
+            }
+            //控制小猪不能出边界
+            if(pig.x < 0){
+                pig.x = 0
+            }
+            if(pig.x > canvasWidth-pig.width){
+                pig.x = canvasWidth - pig.width
+            }
+            if(pig.y < 0){
+                pig.y = 0
+            }
+            if(pig.y > canvasHeight-pig.height){
+                pig.y = canvasHeight - pig.height
+            }
+        }
+
+        //计算时间的X坐标
+        function getX4time() {
+            var timeStr = time + '秒'
+            var x = (canvasWidth - ctx.measureText(timeStr).width) / 2
+            console.log(x)
+            return x
+        }
+
+        //检测游戏是否结束
+        function isGameover() {
+            if (calNum >= 900) {
+                gameState = GAME_OVER
+                endTime = new Date().getTime()
+            }
+        }
+
+        //小猪外观转变
+        function changeLevel() {
+            if (calNum >= 900) {
+                //只更新图片数组即可，animation方法会负责切换图片
+                pig.imgAry = pigLevel[3]
+                //为确保最后能切换成气球猪的照片，我们将lastTime的值修改为0，这样能确保时间间隔一定是到的
+                pig.lastTime = 0
+                //pig.img = pigLevel[3][0]
+                //pig.imgIndex = 0
+                pig.width = 146
+                pig.height = 121
+            } else if (calNum >= 600) {
+                pig.imgAry = pigLevel[2]
+                pig.width = 146
+                pig.height = 107
+            } else if (calNum >= 300) {
+                pig.imgAry = pigLevel[1]
+                pig.width = 128
+                pig.height = 89
+            } else if (calNum < 300) {
+                pig.imgAry = pigLevel[0]
+                pig.width = 126
+                pig.height = 87
+            }
+        }
+
+        //写时间
+        function drawTime() {
+            //计算时间
+            var currentTime = new Date().getTime()
+            var time = parseInt((currentTime - startTime) / 1000)
+
+            ctx.drawImage(timeImg, 593, 20)
+            ctx.font = "30px Arial"
+            ctx.fillStyle = "#8B4513"
+            ctx.fillText("" + time, 643, 60)
+        }
+
+        //写卡路里数值
+        function drawCal() {
+            ctx.drawImage(calImg, 30, 20)
+            ctx.font = "30px Arial"
+            ctx.fillStyle = "#8B4513"
+            ctx.fillText("" + calNum, 70, 55)
+        }
+
+        //碰撞检测
+        function checkHit() {
+            for (var i = 0; i < vegAry.length; i++) {
+                var veg = vegAry[i]
+                var minX = veg.x - pig.width
+                var maxX = veg.x + veg.width
+                var minY = veg.y - pig.height
+                var maxY = veg.y + veg.height
+                if (pig.x >= minX && pig.x <= maxX) {
+                    if (pig.y >= minY && pig.y <= maxY) {
+                        veg.isDied = true
+                        calNum = calNum + veg.cal
+                    }
+                }
+            }
+        }
+
+        //绘制小猪
+        function drawPig() {
+            ctx.drawImage(pig.img, pig.x, pig.y)
+        }
+
+        //删除移出画布的蔬菜角色和被小猪吃掉的蔬菜角色
+        function deleteVeg() {
+            //注意，从数组中删除元素时需倒序遍历数组
+            for (var i = vegAry.length - 1; i >= 0; i--) {
+                var veg = vegAry[i]
+                //将移出左侧的蔬菜删除并扣分
+                if (veg.x <= -veg.width) {
+                    //毒蘑菇移出左侧不扣分，其他的蔬菜要扣分
+                    /*
+                    判断植物是否为毒蘑菇有两种方式：
+                        1、毒蘑菇的卡路里值为负数，所以可以通过这个特征判断
+                        2、初始化蔬菜对象时添加一个用于标识植物名称的属性，
+                        第2种方式对代码改动较大，不采用
+                    */
+                    //通过判断分数值是否为负数可判断是否为毒蘑菇。
+                    if (veg.cal > 0) {
+                        calNum = calNum - 20
+                    }
+                    vegAry.splice(i, 1)
+                }
+                //将被碰撞的蔬菜删除
+                if (veg.isDied == true) {
+                    vegAry.splice(i, 1)
+                }
+            }
+            //console.log(vegAry.length)
+        }
+
+        //随机生成一个蔬菜角色
+        function randomVeg() {
+            //随机选一个蔬菜角色，类似于掷骰子
+            var num = parseInt(Math.random() * 8)
+            var veg = null
+            if (num == 0) {
+                veg = { x: 100, y: 200, imgAry: broccoliImgAry, img: broccoliImgAry[0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 75, height: 69, isDied: false, cal: 20 }
+            } else if (num == 1) {
+                veg = { x: 100, y: 200, imgAry: radishImgAry, img: radishImgAry[0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 56, height: 94, isDied: false, cal: 60 }
+            } else if (num == 2) {
+                veg = { x: 100, y: 200, imgAry: potatoImgAry, img: potatoImgAry[0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 54, height: 75, isDied: false, cal: 50 }
+            } else if (num == 3) {
+                veg = { x: 100, y: 200, imgAry: tomatoImgAry, img: tomatoImgAry[0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 75, height: 86, isDied: false, cal: 80 }
+            } else {
+                veg = { x: 100, y: 200, imgAry: mushroomImgAry, img: mushroomImgAry[0], imgIndex: 0, lastTime: 0, intervalTime: 100, width: 75, height: 72, isDied: false, cal: -100 }
+            }
+            //指定蔬菜从画布右侧出现
+            veg.x = canvasWidth
+            //随机生成Y坐标(蔬菜不能出现在栅栏区域内，所以canvasHeight-fenceHeight-veg.height)
+            var y = parseInt(Math.random() * (canvasHeight - fenceHeight - veg.height))
+            veg.y = y
+            return veg
+        }
+
+        //蔬菜移动
+        function moveVeg() {
+            for (var i = 0; i < vegAry.length; i++) {
+                var veg = vegAry[i]
+                veg.x = veg.x - 4
+            }
+        }
+
+        //绘制蔬菜
+        function drawVeg() {
+            for (var i = 0; i < vegAry.length; i++) {
+                var veg = vegAry[i]
+                ctx.drawImage(veg.img, veg.x, veg.y)
+            }
+        }
+
+        //为角色添加动画
+        function animation(role) {
+            var currentTime = new Date().getTime()
+            if (currentTime - role.lastTime >= role.intervalTime) {
+                //计算下一张图片对应的索引
+                role.imgIndex = role.imgIndex + 1
+                if (role.imgIndex == role.imgAry.length) {
+                    role.imgIndex = 0
+                }
+                //更新图片
+                role.img = role.imgAry[role.imgIndex]
+                //更新lastTime的值
+                role.lastTime = currentTime
+                //console.log(role)
+            }
+        }
+
+        function addAnimation() {
+            //为蔬菜角色添加动画
+            for (var i = 0; i < vegAry.length; i++) {
+                var veg = vegAry[i]
+                animation(veg)
+            }
+            //让小猪有动画
+            animation(pig)
+        }                                                                     
+    </script>              
+</body>
+</html>

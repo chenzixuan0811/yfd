@@ -1,0 +1,107 @@
+
+.main{
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+}
+body{
+    margin: 0 auto!important; text-align:center!important;
+}
+.gobackWrap{
+    text-align: left;
+}
+#game{
+    border-radius:8px;
+    border:2px solid rgba(192,219,219,1);
+    padding: 16px;
+    width: 100%;
+/*    max-width:346px;*/
+    float: left;
+}
+#game canvas{
+    box-shadow: 5px 5px 5px silver;
+    width: 100%;
+}
+.gameWrap{
+    margin-left: 50%;
+    transform: translate(-50%);
+}
+.wrap{
+    min-width: 768px;
+    display: flex;
+    align-items: center;
+    margin-left: 50%;
+    transform: translate(-50%);
+}
+@media screen and (max-width:800px){
+    #main{
+        width: 700px
+    }
+    #game{
+        float: none;
+        width: auto;
+    }
+}
+@media screen and (max-width:480px){
+    .cityListWrap {
+        padding: 0;
+        float: left;
+        width: 50%;
+    }
+    .city{
+        width: 91%;
+        height: 4rem;
+        border-radius: 10px;
+        margin:0 1rem;
+    }
+    .m-text{
+        max-width: 920px;
+        padding: 0 0px;
+        margin-top: 20px;
+    }
+    .m-text >div{
+        text-align: left;
+        display: block;
+        padding: 0 3rem;
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+    .city div{
+        line-height: 4rem;
+    }
+    .cityair,.cityname{
+        font-size: 1rem;
+    }
+    .cityList{
+        width: 100%;
+    }
+    .location{
+        width: 85%;
+        height: 11rem;
+        margin: 0;
+        margin-left: 5%;
+        padding: 10px;
+        margin-bottom: 1.5rem;
+    }
+    .main{
+        margin: 0 10px;
+    }
+    header{
+        padding: 10px;
+    }
+    .margin0{
+        margin: 0;
+    }
+    .padding0{
+        padding: 0;
+    }
+    .width28{
+        width: 35%;
+    }
+    .width12{
+        width: 12%;
+    }
+    .gobackWrap{
+        width: 35%;
+    }
+}

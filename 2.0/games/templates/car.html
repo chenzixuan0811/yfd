@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>car</title>
+    <style>
+        body {
+            text-align: center
+        }
+
+        canvas {
+            border: 1px solid white
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 创建画布 -->
+    <canvas id="main" width="900" height="600"></canvas>
+    <br>
+    <script>
+        // 获取画布
+        var canvas = document.getElementById('main')
+
+        // 创建画笔
+        var ctx = canvas.getContext('2d')
+
+        // 斑马线
+        var wireX = 900
+
+        // 自己的车
+        var car_meY = 25
+
+        // 敌方的车
+        var car_himX = 930
+
+        // 获取背景、汽车和斑马线图片
+        var road = new Image()
+        road.src = 'static/images/highway.png'
+        var wire = new Image()
+        wire.src = 'static/images/wire.png'
+        var car_me = new Image()
+        car_me.src = 'static/images/car2.png'
+        var car_him = new Image()
+        car_him.src = 'static/images/car.png'
+
+        // 如果加载完毕，执行如下代码
+        window.onload = function(){
+            // 点击画布则汽车变道
+            canvas.onclick = car_move
+            // 斑马线向前移
+            setInterval(wire_move,10)
+        }
+
+        //定时器要执行的函数
+        function wire_move(){
+            ctx.clearRect(0,0,900,600)
+            ctx.drawImage(road,0,0,900,600)
+            ctx.drawImage(wire,wireX,250,400,100)
+            ctx.drawImage(car_me,20,car_meY,330,200)
+            ctx.drawImage(car_him,car_himX,25//需更改
+            ,330,200)
+            // 每次斑马线和敌方车往前移
+            wireX = wireX - 10
+            car_himX = car_himX - 7
+            
+            // 如果斑马线移出画布，就重置       
+            if (wireX == -400){
+                wireX = 900
+            }
+            // 如果敌方车移出画布，就重置
+            if(car_himX <= -300){
+                car_himX = 570
+            }
+        }
+        // 汽车变道函数
+        function car_move(){
+            if(car_meY == 25){
+                car_meY = 375
+            }else{
+                car_meY = 25
+            }
+        }
+        
+    </script>
+</body>
+
+</html>

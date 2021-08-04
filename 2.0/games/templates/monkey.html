@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>宇宙小猿</title>
+    <style>
+        body {
+            text-align: center
+        }
+        canvas {
+            margin: 0 auto
+        }
+    </style>
+</head>
+<body id="body">
+    <canvas id="main" width="396" height="644"></canvas>
+    <a href="/">返回主页</a>
+    <script>
+        //获取音效
+        var scoreAudio = new Audio('../static/music/score.wav')
+        var fireAudio = new Audio('../static/music/7111.wav')
+        var overAudio = new Audio('../staitc/music/over.mp3')
+
+        // 获取画布
+        var canvas = document.getElementById('main')
+
+        // 创建画笔
+        var ctx = canvas.getContext('2d')
+
+        // 设置背景图片
+        var bgImg = new Image()
+        bgImg.src = '../static/images/monkeyImg/bg.png'
+
+        // 设置管道图片
+        var columnImg = new Image()
+        columnImg.src = '../static/images/monkeyImg/column.png'
+
+        // 设置地面图片
+        var groundImg = new Image()
+        groundImg.src = '../static/images/monkeyImg/ground.png'
+
+         // 加载小猿用于实现动画的图片
+         var monkeyImg1 = new Image()
+        monkeyImg1.src = '../static/images/monkeyImg/1.png'
+
+        var monkeyImg2 = new Image()
+        monkeyImg2.src = '../static/images/monkeyImg/2.png'
+
+        var monkeyImg3 = new Image()
+        monkeyImg3.src = '../static/images/monkeyImg/3.png'
+
+        var monkeyImg4 = new Image()
+        monkeyImg4.src = '../static/images/monkeyImg/4.png'
+
+        var monkeyImgAry = [monkeyImg1, monkeyImg2, monkeyImg3, monkeyImg4]
+
+        //加载游戏结束图片
+        var overImg = new Image()
+        overImg.src = '../static/images/monkeyImg/over.png'
+
+        // 加载用于准备状态的图片
+        var readyImg = new Image()
+        readyImg.src = '../static/images/monkeyImg/ready.png'
+
+
+        // 画布宽高
+        var canvasWidth = 396
+        var canvasHeight = 644
+
+        // 地面对象
+        var ground = {
+            img: groundImg,
+            x: 0,
+            y: canvasHeight - 147,
+            width: 803,
+            height: 147
+        }
+
+        // 管道对象
+        var column = {
+            img: columnImg,
+            x: canvasWidth,
+            y: getColumnY(),
+            width: 83,
+            height: 1547,
+
+            // 添加管道上部分高度数据和上下管道空隙数据
+            columnUp: 676,
+            columnGap: 194
+        }
+
+        // 小猿对象
+        var monkey = {
+            img: monkeyImgAry[0],
+            imgAry: monkeyImgAry,
+            imgIndex: 0,
+            x: 183,
+            y: 200,
+            v: 0,       // v是小猿的下落速度，初始速度设为0
+            width: 53,
+            height: 58
+        }
+
+        var a = 500 // 加速度
+        var t = 1 / 60 // 时间(秒)
+
+        // 定义常量存储游戏运行状态、结束状态
+        const GAME_RUNNING = 1
+        const GAME_OVER = -1
+
+        // 定义常量GAME_READY为准备状态
+        const GAME_READY = 0
+
+        // 定义变量存储游戏当前状态，游戏初始状态设置为准备状态
+        var gameState = GAME_READY
+
+        // 需求：定义变量score，存储得分，初始值为0
+        var score = 0
+
+        window.onload = function() {
+            // 给画布绑定点击事件，
+            // 当事件被触发时修改小猿速度，实现重新绘制页面时，小猿向上移动
+            document.onkeydown = mouseClickHandler
+
+            setInterval(gameHandler, 1000 / 60)
+        }   
+
+        // 定时器执行的方法
+        function gameHandler() {
+            // 判断当前游戏状态是否为准备状态
+            if (gameState == GAME_READY) {
+                // 绘制背景图片、准备状态图片、小猿图片
+                ctx.drawImage(bgImg, 0, 0)
+                ctx.drawImage(readyImg, 0, 0)
+                ctx.drawImage(monkey.img, 183, 200)
+
+            } else if (gameState == GAME_RUNNING) {    // 否则如果游戏状态为运行状态
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+                ctx.drawImage(bgImg, 0, 0)
+                ctx.drawImage(column.img, column.x, column.y)
+                ctx.drawImage(ground.img, ground.x, ground.y)
+                //绘制小猿
+                ctx.drawImage(monkey.img, monkey.x, monkey.y)
+
+                // 需求：在画布上绘制分数
+                ctx.font = '30px Arial'
+                ctx.fillStyle = '#ffffff'
+                ctx.fillText('' + score,6,30)
+                columnMove()
+
+                groundMove()
+
+                // 调用实现小猿下落的函数
+                monkeyMove()
+
+                // 调用函数checkHit()
+                checkHit()
+
+                // 需求：调用函数addScore()，实现游戏计分
+                addScore()
+                monkeyAnimation()
+
+            } else if (gameState == GAME_OVER) {    // 否则如果游戏状态为结束状态
+                // 绘制游戏结束图片
+                ctx.drawImage(overImg, 0, 0)
+            }
+        }
+
+        function columnMove() {
+            // 实现管道循环移动
+            column.x = column.x - 1
+            if (column.x <= -column.width) {
+                column.x = canvasWidth
+                // 获取一个新的随机数，实现管道的Y坐标随机
+                column.y = getColumnY()
+            }
+        }
+
+        function groundMove() {
+            // 实现地面循环移动
+            ground.x = ground.x - 1
+            if (ground.x <= -canvasWidth) {
+                ground.x = 0
+            }
+        }
+
+        // 生成管道随机Y坐标的自定义函数
+        function getColumnY() {
+            var columnUp = 676 // 管道上部分高度
+            var columnGap = 194 // 上下管道空隙高度
+            var gap = 30 // 管道预留最小高度
+            var minY = -(columnUp - gap) // 最小Y坐标
+            var maxY = -(columnUp + columnGap + gap - (canvasHeight - ground.height)) // 最大Y坐标
+            var y = parseInt(Math.random() * (maxY - minY) + minY) // 随机Y坐标
+            return y
+        }
+        
+        // 实现小猿下落的函数
+        function monkeyMove() {
+            // 计算移动距离(速度 * 时间 + 加速度 * 时间 * 时间 / 2)
+            var s = monkey.v * t + a * t * t / 2
+            
+            // 改变小猿当前的y坐标(小猿y坐标 + 移动距离)
+            monkey.y = monkey.y + s
+
+            // 更新小猿现在的速度(速度 + 加速度 * 时间)
+            monkey.v = monkey.v + a * t
+        }
+
+        // 给画布绑定点击事件时要设置的函数
+        function mouseClickHandler() {
+            // 如果当前游戏状态为准备状态
+            if (gameState == GAME_READY) {
+                // 鼠标点击更改为运行状态
+                gameState = GAME_RUNNING
+
+            } else if (gameState == GAME_RUNNING) {    // 否则如果当前游戏状态为运行状态
+                // 更改小猿的速度
+                monkey.v = -210
+                fireAudio.pause();
+                fireAudio.play();
+            } else if (gameState == GAME_OVER) {    // 否则如果当前游戏状态为结束状态
+                // 鼠标点击更改为准备状态
+                gameState = GAME_READY
+
+                // 重置小猿的x、y坐标、速度
+                monkey.x = 183
+                monkey.y = 200
+                monkey.v = 0 
+                // 重置管道、地面的x坐标
+                column.x = canvasWidth
+                ground.x = 0
+                // 重置管道的y坐标
+                column.y = getColumnY()
+
+                // 游戏结束时重置分数为0
+                score = 0
+            }
+        }
+
+        // 定义函数实现碰撞检测
+        function checkHit() {  
+            // 小猿顶部Y坐标，即小猿的y坐标
+            var monkeyTop = monkey.y
+
+            // 小猿底部Y坐标，即小猿的y坐标 + 小猿的高度
+            var monkeyBottom = monkey.y + monkey.height
+
+            // 判断小猿是否碰到了天空或地面
+            if (monkeyTop <= 0 || monkeyBottom >= ground.y) {
+                // alert("小猿飞出了天空或碰到了地面") 
+                               
+                // 将游戏状态改为结束状态
+                gameState = GAME_OVER
+                overAudio.play();
+            }
+
+            // 定义变量存储小猿会碰撞管道的X坐标范围内的最小坐标、最大坐标
+            var minX = column.x - monkey.width
+            var maxX = column.x + column.width
+
+            // 定义变量存储管道空隙顶部、底部的Y坐标
+            var gapTop = column.y + column.columnUp
+            var gapBottom = gapTop + column.columnGap
+
+            // 判断小猿是否已经进入会碰撞管道的范围内
+            if (monkey.x >= minX && monkey.x <= maxX) {
+                // 当小猿已经进入管道空隙时，判断小猿是否碰到的上部分管道或下部分管道
+                if (monkeyTop <= gapTop || monkeyBottom >= gapBottom) {
+                    // alert('小猿碰到了管道')
+
+                    // 将游戏状态改为结束状态
+                    gameState = GAME_OVER
+                    overAudio.play();
+                }
+            }
+        }
+
+        // 定义函数实现游戏计分
+        function addScore() {
+            // 需求：1.计算管道右侧的X坐标
+            var columRight = column.x + column.width
+
+            // 2.如果小猿穿过管道，则小猿加分
+            // 判断条件：小猿X坐标 > 管道右侧X坐标 并且 小猿X坐标 <= 管道步长
+            
+            if(monkey.x - columRight > 0 && monkey.x - columRight <= 1){
+                score = score + 100
+                scoreAudio.play();
+            }
+        }
+        function monkeyAnimation(){
+            monkey.imgIndex = monkey.imgIndex + 1
+            if(monkey.imgIndex == monkey.imgAry.length){
+                monkey.imgIndex = 0
+            }
+            monkey.img = monkeyImgAry[monkey.imgIndex]
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>小猫抓蝴蝶</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid black
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="main" width="900" height="600"></canvas>
+    <a href="/">返回主页</a>
+    <script>
+        var canvas = document.getElementById('main')
+        var ctx = canvas.getContext('2d')
+        var catImage = new Image()
+        catImage.src = '../static/images/cat.jpg'
+        var butterflyImage = new Image()
+        butterflyImage.src = '../static/images/butterfly.jpg'
+        var bgImg = new Image()
+        bgImg.src = '../static/images/bg.jpg'
+        var score = 0
+        var cat = {
+            x: 770,
+            y: 450,
+            height: 150,
+            width: 130,
+            img: catImage,
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            speed: 10
+        }
+        var butterfly = {
+            x: 0,
+            y: 0,
+            width: 160,
+            height: 150,
+            img: butterflyImage,
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            speed: 15
+        }
+        window.onload = function () {
+            document.onkeydown = function (e) {
+                if (e.key == 'w') {
+                    butterfly.up = true
+                } else if (e.key == 'a') {
+                    butterfly.left = true
+                } else if (e.key == 's') {
+                    butterfly.down = true
+                } else if (e.key == 'd') {
+                    butterfly.right = true
+                } else if (e.key == 'ArrowLeft') {
+                    cat.left = true
+                } else if (e.key == 'ArrowRight') {
+                    cat.right = true
+                } else if (e.key == 'ArrowUp') {
+                    cat.up = true
+                } else if (e.key == 'ArrowDown') {
+                    cat.down = true
+                }
+            }
+            document.onkeyup = function (e) {
+                if (e.key == 'w') {
+                    butterfly.up = false
+                } else if (e.key == 'a') {
+                    butterfly.left = false
+                } else if (e.key == 's') {
+                    butterfly.down = false
+                } else if (e.key == 'd') {
+                    butterfly.right = false
+                } else if (e.key == 'ArrowLeft') {
+                    cat.left = false
+                } else if (e.key == 'ArrowRight') {
+                    cat.right = false
+                } else if (e.key == 'ArrowUp') {
+                    cat.up = false
+                } else if (e.key == 'ArrowDown') {
+                    cat.down = false
+                }
+            }
+            setInterval(gameHandler, 1000 / 60)
+        }
+        function gameHandler() {
+            draw()
+            checkHit()
+            if (butterfly.left) {
+                butterfly.x -= butterfly.speed
+                if (butterfly.x < 0) {
+                    butterfly.x = 0
+                }
+            } else if (butterfly.right) {
+                butterfly.x += butterfly.speed
+                if (butterfly.x + butterfly.width > canvas.width) {
+                    butterfly.x = canvas.width - butterfly.width
+                }
+            } else if (butterfly.up) {
+                butterfly.y -= butterfly.speed
+                if (butterfly.y < 0){
+                    butterfly.y = 0
+                }
+            } else if (butterfly.down) {
+                butterfly.y += butterfly.speed
+                if(butterfly.y + butterfly.height > canvas.height){
+                    butterfly.y = canvas.height - butterfly.height
+                }
+            } else if (cat.left) {
+                cat.x -= cat.speed
+                if(cat.x  < 0){
+                    cat.x = 0
+                }
+            } else if (cat.right) {
+                cat.x += cat.speed
+                if(cat.x + cat.width > canvas.width){
+                    cat.x = canvas.width - cat.width
+                }
+            } else if (cat.up) {
+                cat.y -= cat.speed
+                if(cat.y < 0){
+                    cat.y = 0
+                }
+            } else if (cat.down) {
+                cat.y += cat.speed
+                if(cat.y + cat.height > canvas.height){
+                    cat.y = canvas.height - cat.height
+                }
+            }
+        }
+        function draw() {
+            ctx.drawImage(bgImg, 0, 0, 900, 600)
+            ctx.drawImage(butterfly.img, butterfly.x, butterfly.y, butterfly.width, butterfly.height)
+            ctx.drawImage(cat.img, cat.x, cat.y, cat.width, cat.height)
+            ctx.font = "40px Arial"
+            ctx.fillStyle = "#ffffff"
+            ctx.fillText('' + score,40 * (score + '').length,40)
+        }
+        function checkHit(){
+            //butterfly's maxX minX maxY minY
+            var maxX = cat.x + cat.width
+            var minX = cat.x - butterfly.width
+            var maxY = cat.y + cat.height
+            var minY = cat.y - butterfly.height
+            if(butterfly.x < maxX && butterfly.x > minX && butterfly.y < maxY && butterfly.y > minX){
+                score = score + 100
+                butterfly.x = parseInt(Math.random() * (canvas.width - butterfly.width))
+                butterfly.y = parseInt(Math.random() * (canvas.height - butterfly.height))
+            }
+        }
+    </script>
+</body>
+
+</html>
